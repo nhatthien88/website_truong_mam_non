@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-cash-coin text-success me-3" style="font-size: 2.5rem;"></i>
+  <div>
+    <h3 class="mb-0">Học phí</h3>
+    <p class="text-muted mb-0 small">{{ classroom.name }}</p>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-6">
+    <form class="row g-2" method="get">
+      <div class="col-auto">
+        <label class="col-form-label fw-semibold">
+          <i class="bi bi-calendar-month me-1"></i>Tháng:
+        </label>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" name="month" value="{{ month }}" placeholder="YYYY-MM">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-search me-1"></i>Xem
+        </button>
+      </div>
+      <div class="col-auto">
+        <a class="btn btn-outline-primary" href="{{ url_for('teacher.meals_daily') }}">
+          <i class="bi bi-basket me-1"></i>Ghi nhận ăn theo ngày
+        </a>
+      </div>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <div class="input-group">
+      <span class="input-group-text bg-white">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control" id="searchStudent" placeholder="Tìm theo tên học sinh...">
+    </div>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-12">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="statusFilter" id="filterAllStatus" value="all" checked
+        autocomplete="off">
+      <label class="btn btn-outline-primary" for="filterAllStatus">
+        <i class="bi bi-list-ul me-1"></i>Tất cả (<span id="countAll">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterPaid" value="PAID" autocomplete="off">
+      <label class="btn btn-outline-success" for="filterPaid">
+        <i class="bi bi-check-circle me-1"></i>Đã thu (<span id="countPaid">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterUnpaid" value="UNPAID" autocomplete="off">
+      <label class="btn btn-outline-warning" for="filterUnpaid">
+        <i class="bi bi-clock me-1"></i>Chưa thu (<span id="countUnpaid">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterNoInvoice" value="NONE" autocomplete="off">
+      <label class="btn btn-outline-secondary" for="filterNoInvoice">
+        <i class="bi bi-file-earmark-x me-1"></i>Chưa tạo (<span id="countNoInvoice">0</span>)
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Họ tên</th>
+              <th>Ngày ăn</th>
+              <th>Học phí (tháng)</th>
+              <th>Tiền ăn/ngày</th>
+              <th>Tổng</th>
+              <th style="width: 120px;">Trạng thái</th>
+              <th style="width: 200px;" class="text-center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="tuitionTableBody">
+            {% for r in rows %}
+            {% set inv = r.invoice %}
+            <tr data-name="{{ r.student.full_name|lower }}" data-status="{{ inv.status if inv else 'NONE' }}">
+              <td>
+                <i class="bi bi-person-circle text-primary me-2"></i>
+                <span class="fw-semibold">{{ r.student.full_name }}</span>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark">{{ r.meal_days }} ngày</span>
+              </td>
+              <td>{{ "{:,}".format(r.tuition_fee) }} ₫</td>
+              <td>{{ "{:,}".format(r.meal_price) }} ₫</td>
+              <td>
+                <strong class="text-success">{{ "{:,}".format(r.total) }} ₫</strong>
+              </td>
+              <td>
+                {% if inv %}
+                {% if inv.status == 'PAID' %}
+                <span class="badge bg-success">
+                  <i class="bi bi-check-circle me-1"></i>Đã thu
+                </span>
+                {% else %}
+                <span class="badge bg-warning">
+                  <i class="bi bi-clock me-1"></i>Chưa thu
+                </span>
+                {% endif %}
+                {% else %}
+                <span class="badge bg-secondary">
+                  <i class="bi bi-file-earmark-x me-1"></i>Chưa tạo
+                </span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if not inv or inv.status != 'PAID' %}
+                <form class="d-inline" method="post"
+                  action="{{ url_for('teacher.invoice_generate', student_id=r.student.id) }}">
+                  <input type="hidden" name="month" value="{{ month }}">
+                  <button class="btn btn-sm btn-outline-primary" type="submit">
+                    <i class="bi bi-{{ 'arrow-repeat' if inv else 'file-earmark-plus' }} me-1"></i>
+                    {% if inv %}Cập nhật{% else %}Tạo{% endif %}
+                  </button>
+                </form>
+                {% endif %}
+
+                {% if inv %}
+                <a class="btn btn-sm btn-outline-secondary"
+                  href="{{ url_for('teacher.invoice_detail', invoice_id=inv.id) }}">
+                  <i class="bi bi-eye me-1"></i>Chi tiết
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+  </div>
+</div>
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+  <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Không tìm thấy kết quả phù hợp</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('searchStudent');
+  const tableBody = document.getElementById('tuitionTableBody');
+  const noResults = document.getElementById('noResults');
+  const statusFilters = document.querySelectorAll('input[name="statusFilter"]');
+
+  function updateCounts() {
+    const rows = tableBody.querySelectorAll('tr');
+    let countAll = rows.length;
+    let countPaid = 0;
+    let countUnpaid = 0;
+    let countNoInvoice = 0;
+
+    rows.forEach(row => {
+      const status = row.getAttribute('data-status');
+
+      if (status === 'PAID') countPaid++;
+      else if (status === 'UNPAID') countUnpaid++;
+      else if (status === 'NONE') countNoInvoice++;
+    });
+
+    document.getElementById('countAll').textContent = countAll;
+    document.getElementById('countPaid').textContent = countPaid;
+    document.getElementById('countUnpaid').textContent = countUnpaid;
+    document.getElementById('countNoInvoice').textContent = countNoInvoice;
+  }
+
+  function filterStudents() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedStatus = document.querySelector('input[name="statusFilter"]:checked').value;
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const studentName = row.getAttribute('data-name') || '';
+      const status = row.getAttribute('data-status');
+
+      const matchesSearch = searchTerm === '' || studentName.includes(searchTerm);
+      const matchesStatus = selectedStatus === 'all' || status === selectedStatus;
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    tableBody.closest('.card').style.display = visibleCount === 0 ? 'none' : 'block';
+  }
+
+  searchInput.addEventListener('input', filterStudents);
+  statusFilters.forEach(filter => {
+    filter.addEventListener('change', filterStudents);
+  });
+
+  updateCounts();
+</script>
+{% endblock %}

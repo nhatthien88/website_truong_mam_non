@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-heart-pulse-fill text-danger me-3" style="font-size: 2.5rem;"></i>
+  <div>
+    <h3 class="mb-0">Ghi nhận sức khỏe</h3>
+    <p class="text-muted mb-0 small">{{ classroom.name }}</p>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-6">
+    <form class="row g-2" method="get">
+      <div class="col-auto">
+        <label class="col-form-label fw-semibold">
+          <i class="bi bi-calendar-date me-1"></i>Ngày:
+        </label>
+      </div>
+      <div class="col-md-5">
+        <input type="date" class="form-control" name="date" value="{{ record_date.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-search me-1"></i>Xem
+        </button>
+      </div>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <div class="input-group">
+      <span class="input-group-text bg-white">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control" id="searchStudent" placeholder="Tìm theo tên học sinh...">
+    </div>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-12">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="statusFilter" id="filterAllStatus" value="all" checked
+        autocomplete="off">
+      <label class="btn btn-outline-primary" for="filterAllStatus">
+        <i class="bi bi-list-ul me-1"></i>Tất cả (<span id="countAll">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterRecorded" value="recorded" autocomplete="off">
+      <label class="btn btn-outline-success" for="filterRecorded">
+        <i class="bi bi-check-circle me-1"></i>Đã ghi (<span id="countRecorded">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterNotRecorded" value="not-recorded"
+        autocomplete="off">
+      <label class="btn btn-outline-secondary" for="filterNotRecorded">
+        <i class="bi bi-x-circle me-1"></i>Chưa ghi (<span id="countNotRecorded">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="statusFilter" id="filterFever" value="fever" autocomplete="off">
+      <label class="btn btn-outline-warning" for="filterFever">
+        <i class="bi bi-thermometer-high me-1"></i>Sốt (<span id="countFever">0</span>)
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 60px;">STT</th>
+              <th>Họ tên</th>
+              <th>Cân nặng (kg)</th>
+              <th>Nhiệt độ</th>
+              <th>Ghi chú</th>
+              <th style="width: 120px;">Trạng thái</th>
+              <th style="width: 140px;" class="text-center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="healthTableBody">
+            {% for s in students %}
+            {% set r = record_map.get(s.id) %}
+            <tr data-name="{{ s.full_name|lower }}" data-status="{{ 'recorded' if r else 'not-recorded' }}"
+              data-fever="{{ 'true' if r and r.temperature_c|float > 37.5 else 'false' }}">
+              <td>{{ loop.index }}</td>
+              <td>
+                <i class="bi bi-person-circle text-primary me-2"></i>
+                <span class="fw-semibold">{{ s.full_name }}</span>
+              </td>
+              <td>
+                {% if r and r.weight_kg %}
+                <span class="badge bg-light text-dark">{{ r.weight_kg }} kg</span>
+                {% else %}
+                <span class="text-muted">Chưa ghi nhận</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if r %}
+                <span class="badge {% if r.temperature_c|float > 37.5 %}bg-warning{% else %}bg-success{% endif %}">
+                  <i class="bi bi-thermometer-half me-1"></i>{{ r.temperature_c }}°C
+                </span>
+                {% if r.temperature_c|float > 37.5 %}
+                <span class="badge bg-danger ms-1">Sốt</span>
+                {% endif %}
+                {% else %}
+                <span class="text-muted">Chưa ghi nhận</span>
+                {% endif %}
+              </td>
+              <td>{{ r.note if r and r.note else "-" }}</td>
+              <td>
+                {% if r %}
+                <span class="badge bg-success">
+                  <i class="bi bi-check-circle me-1"></i>Đã ghi
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">
+                  <i class="bi bi-x-circle me-1"></i>Chưa ghi
+                </span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <a class="btn btn-sm btn-outline-primary"
+                  href="{{ url_for('teacher.health_edit', student_id=s.id, date=record_date.strftime('%Y-%m-%d')) }}">
+                  <i class="bi bi-{{ 'pencil-square' if r else 'plus-circle' }} me-1"></i>{{ 'Sửa' if r else 'Nhập' }}
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+  </div>
+</div>
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+  <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Không tìm thấy kết quả phù hợp</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('searchStudent');
+  const tableBody = document.getElementById('healthTableBody');
+  const noResults = document.getElementById('noResults');
+  const statusFilters = document.querySelectorAll('input[name="statusFilter"]');
+
+  function updateCounts() {
+    const rows = tableBody.querySelectorAll('tr');
+    let countAll = rows.length;
+    let countRecorded = 0;
+    let countNotRecorded = 0;
+    let countFever = 0;
+
+    rows.forEach(row => {
+      const status = row.getAttribute('data-status');
+      const hasFever = row.getAttribute('data-fever') === 'true';
+
+      if (status === 'recorded') countRecorded++;
+      else countNotRecorded++;
+
+      if (hasFever) countFever++;
+    });
+
+    document.getElementById('countAll').textContent = countAll;
+    document.getElementById('countRecorded').textContent = countRecorded;
+    document.getElementById('countNotRecorded').textContent = countNotRecorded;
+    document.getElementById('countFever').textContent = countFever;
+  }
+
+  function filterStudents() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedStatus = document.querySelector('input[name="statusFilter"]:checked').value;
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const studentName = row.getAttribute('data-name') || '';
+      const status = row.getAttribute('data-status');
+      const hasFever = row.getAttribute('data-fever') === 'true';
+
+      const matchesSearch = searchTerm === '' || studentName.includes(searchTerm);
+      let matchesStatus = true;
+
+      if (selectedStatus === 'recorded') {
+        matchesStatus = status === 'recorded';
+      } else if (selectedStatus === 'not-recorded') {
+        matchesStatus = status === 'not-recorded';
+      } else if (selectedStatus === 'fever') {
+        matchesStatus = hasFever;
+      }
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    tableBody.closest('.card').style.display = visibleCount === 0 ? 'none' : 'block';
+  }
+
+  searchInput.addEventListener('input', filterStudents);
+  statusFilters.forEach(filter => {
+    filter.addEventListener('change', filterStudents);
+  });
+
+  updateCounts();
+</script>
+{% endblock %}

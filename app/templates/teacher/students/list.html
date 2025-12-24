@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex align-items-center">
+    <i class="bi bi-mortarboard-fill text-primary me-3" style="font-size: 2.5rem;"></i>
+    <div>
+      <h3 class="mb-0">Quản lý học sinh</h3>
+      <p class="text-muted mb-0 small">{{ classroom.name }}</p>
+    </div>
+  </div>
+  <div>
+    <a class="btn btn-primary" href="{{ url_for('teacher.students_create') }}">
+      <i class="bi bi-person-plus-fill me-2"></i>Thêm học sinh
+    </a>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-8">
+    <div class="alert alert-info d-flex align-items-center mb-0" role="alert">
+      <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+      <div>
+        <strong>Sĩ số tối đa:</strong> {{ max_students }} học sinh/lớp
+        <span class="ms-3">|</span>
+        <span class="ms-3"><strong>Hiện tại:</strong> <span id="studentCount">{{ students|length }}</span> học
+          sinh</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="input-group">
+      <span class="input-group-text bg-white">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control" id="searchStudent" placeholder="Tìm theo tên học sinh hoặc phụ huynh...">
+    </div>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-12">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="genderFilter" id="filterAll" value="all" checked autocomplete="off">
+      <label class="btn btn-outline-primary" for="filterAll">
+        <i class="bi bi-people-fill me-1"></i>Tất cả
+      </label>
+
+      <input type="radio" class="btn-check" name="genderFilter" id="filterMale" value="M" autocomplete="off">
+      <label class="btn btn-outline-info" for="filterMale">
+        <i class="bi bi-gender-male me-1"></i>Nam
+      </label>
+
+      <input type="radio" class="btn-check" name="genderFilter" id="filterFemale" value="F" autocomplete="off">
+      <label class="btn btn-outline-danger" for="filterFemale">
+        <i class="bi bi-gender-female me-1"></i>Nữ
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px;">ID</th>
+            <th>Họ tên</th>
+            <th>Ngày sinh</th>
+            <th style="width: 100px;">Giới tính</th>
+            <th>Phụ huynh</th>
+            <th>Số điện thoại</th>
+            <th style="width: 180px;" class="text-center">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody">
+          {% for s in students %}
+          <tr data-gender="{{ s.gender }}" data-name="{{ s.full_name|lower }}" data-parent="{{ s.parent_name|lower }}">
+            <td class="fw-semibold text-muted">#{{ s.id }}</td>
+            <td>
+              <i class="bi bi-person-circle text-primary me-2"></i>
+              <span class="fw-semibold">{{ s.full_name }}</span>
+            </td>
+            <td>
+              <i class="bi bi-calendar-event me-1 text-muted"></i>
+              {{ s.dob.strftime("%d/%m/%Y") }}
+            </td>
+            <td>
+              {% if s.gender == "M" %}
+              <span class="badge bg-info">
+                <i class="bi bi-gender-male me-1"></i>Nam
+              </span>
+              {% else %}
+              <span class="badge bg-danger">
+                <i class="bi bi-gender-female me-1"></i>Nữ
+              </span>
+              {% endif %}
+            </td>
+            <td>{{ s.parent_name }}</td>
+            <td>
+              <i class="bi bi-telephone-fill me-1 text-success"></i>
+              {{ s.parent_phone }}
+            </td>
+            <td class="text-center">
+              <a class="btn btn-sm btn-outline-secondary"
+                href="{{ url_for('teacher.students_edit', student_id=s.id) }}">
+                <i class="bi bi-pencil-square me-1"></i>Sửa
+              </a>
+              <form class="d-inline" method="post" action="{{ url_for('teacher.students_delete', student_id=s.id) }}"
+                onsubmit="return confirm('Bạn có chắc chắn muốn xóa học sinh này?');">
+                <button class="btn btn-sm btn-outline-danger" type="submit">
+                  <i class="bi bi-trash-fill me-1"></i>Xóa
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if students|length == 0 %}
+<div class="text-center py-5">
+  <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Chưa có học sinh nào trong lớp</p>
+  <a class="btn btn-primary" href="{{ url_for('teacher.students_create') }}">
+    <i class="bi bi-person-plus-fill me-2"></i>Thêm học sinh đầu tiên
+  </a>
+</div>
+{% endif %}
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+  <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Không tìm thấy học sinh phù hợp</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('searchStudent');
+  const tableBody = document.getElementById('studentTableBody');
+  const noResults = document.getElementById('noResults');
+  const studentCount = document.getElementById('studentCount');
+  const genderFilters = document.querySelectorAll('input[name="genderFilter"]');
+
+  function filterStudents() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedGender = document.querySelector('input[name="genderFilter"]:checked').value;
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const studentName = row.getAttribute('data-name') || '';
+      const parentName = row.getAttribute('data-parent') || '';
+      const gender = row.getAttribute('data-gender');
+
+      const matchesSearch = searchTerm === '' ||
+        studentName.includes(searchTerm) ||
+        parentName.includes(searchTerm);
+      const matchesGender = selectedGender === 'all' || gender === selectedGender;
+
+      if (matchesSearch && matchesGender) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    studentCount.textContent = visibleCount;
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    tableBody.closest('.card').style.display = visibleCount === 0 ? 'none' : 'block';
+  }
+
+  searchInput.addEventListener('input', filterStudents);
+  genderFilters.forEach(filter => {
+    filter.addEventListener('change', filterStudents);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-people-fill text-primary me-3" style="font-size: 2.5rem;"></i>
+  <h3 class="mb-0">Quản lý tài khoản giáo viên</h3>
+</div>
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-header">
+    <i class="bi bi-person-plus-fill me-2"></i>Tạo tài khoản giáo viên
+  </div>
+  <div class="card-body">
+    <form class="row g-3" method="post" action="{{ url_for('admin.teachers_create') }}">
+      <div class="col-md-2">
+        <label class="form-label small text-muted">Username</label>
+        <input class="form-control" name="username" placeholder="username123" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted">Họ tên</label>
+        <input class="form-control" name="full_name" placeholder="Nguyễn Văn A" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted">Số điện thoại</label>
+        <input class="form-control" name="phone" placeholder="0912345678">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted">Mật khẩu</label>
+        <input class="form-control" name="password" type="password" placeholder="••••••" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted">Phân công lớp</label>
+        <select class="form-select" name="class_id">
+          <option value="">Chưa phân công</option>
+          {% for c in classes_unassigned %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="bi bi-plus-circle me-1"></i>Tạo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="input-group">
+      <span class="input-group-text bg-white">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control" id="searchTeacher" placeholder="Tìm theo username hoặc họ tên...">
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="assignFilter" id="filterAllTeachers" value="all" checked
+        autocomplete="off">
+      <label class="btn btn-outline-primary" for="filterAllTeachers">
+        <i class="bi bi-people-fill me-1"></i>Tất cả (<span id="countAllTeachers">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="assignFilter" id="filterAssigned" value="assigned" autocomplete="off">
+      <label class="btn btn-outline-success" for="filterAssigned">
+        <i class="bi bi-check-circle me-1"></i>Đã phân công (<span id="countAssigned">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="assignFilter" id="filterNotAssigned" value="not-assigned"
+        autocomplete="off">
+      <label class="btn btn-outline-secondary" for="filterNotAssigned">
+        <i class="bi bi-x-circle me-1"></i>Chưa phân công (<span id="countNotAssigned">0</span>)
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px;">ID</th>
+            <th>Username</th>
+            <th>Họ tên</th>
+            <th>SĐT</th>
+            <th>Lớp phụ trách</th>
+            <th style="width: 200px;" class="text-center">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="teacherTableBody">
+          {% for t in teachers %}
+          {% set assigned_class = namespace(found=None) %}
+          {% for c in all_classes %}
+          {% if c.teacher_id == t.id %}
+          {% set assigned_class.found = c %}
+          {% endif %}
+          {% endfor %}
+          <tr data-username="{{ t.username|lower }}" data-name="{{ t.full_name|lower }}"
+            data-assigned="{{ 'assigned' if assigned_class.found else 'not-assigned' }}">
+            <td class="fw-semibold text-muted">#{{ t.id }}</td>
+            <td>
+              <i class="bi bi-person-circle text-primary me-2"></i>
+              <span class="fw-semibold">{{ t.username }}</span>
+            </td>
+            <td>{{ t.full_name }}</td>
+            <td>
+              {% if t.phone %}
+              <i class="bi bi-telephone-fill me-1 text-success"></i>{{ t.phone }}
+              {% else %}
+              <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if assigned_class.found %}
+              <span class="badge bg-primary">
+                <i class="bi bi-door-open me-1"></i>{{ assigned_class.found.name }}
+              </span>
+              {% else %}
+              <span class="badge bg-secondary">Chưa phân công</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-secondary edit-teacher-btn" type="button"
+                data-teacher-id="{{ t.id }}" data-teacher-name="{{ t.full_name }}"
+                data-teacher-phone="{{ t.phone or '' }}"
+                data-current-class="{{ assigned_class.found.id if assigned_class.found else '' }}">
+                <i class="bi bi-pencil-square me-1"></i>Sửa
+              </button>
+              <form class="d-inline" method="post" action="{{ url_for('admin.teachers_delete', teacher_id=t.id) }}"
+                onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');">
+                <button class="btn btn-sm btn-outline-danger" type="submit">
+                  <i class="bi bi-trash-fill me-1"></i>Xóa
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+  <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Không tìm thấy giáo viên phù hợp</p>
+</div>
+
+<div class="modal fade" id="editTeacherModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" id="editTeacherForm">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square me-2"></i>Sửa thông tin giáo viên
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-person-fill me-1"></i>Họ tên
+          </label>
+          <input class="form-control" name="full_name" id="editTeacherName" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-telephone-fill me-1"></i>Số điện thoại
+          </label>
+          <input class="form-control" name="phone" id="editTeacherPhone" placeholder="0912345678">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-key-fill me-1"></i>Mật khẩu mới
+          </label>
+          <input class="form-control" name="password" type="password" placeholder="Để trống nếu không đổi">
+          <div class="form-text">
+            <i class="bi bi-info-circle me-1"></i>Chỉ nhập khi muốn thay đổi mật khẩu
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-door-open-fill me-1"></i>Phân công lớp
+          </label>
+          <select class="form-select" name="class_id" id="editTeacherClass">
+            <option value="">Chưa phân công</option>
+            {% for c in all_classes %}
+            <option value="{{ c.id }}" data-assigned="{{ 'true' if c.teacher_id else 'false' }}"
+              data-current-teacher="{{ c.teacher_id or '' }}">
+              {{ c.name }}{% if c.teacher_id %} ({{ c.teacher.full_name }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">
+            <i class="bi bi-info-circle me-1"></i>Chỉ hiển thị lớp chưa phân công hoặc lớp hiện tại
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Hủy
+        </button>
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check-circle me-1"></i>Lưu thay đổi
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('searchTeacher');
+  const tableBody = document.getElementById('teacherTableBody');
+  const noResults = document.getElementById('noResults');
+  const assignFilters = document.querySelectorAll('input[name="assignFilter"]');
+
+  function updateCounts() {
+    const rows = tableBody.querySelectorAll('tr');
+    let countAll = rows.length;
+    let countAssigned = 0;
+    let countNotAssigned = 0;
+
+    rows.forEach(row => {
+      const assigned = row.getAttribute('data-assigned');
+
+      if (assigned === 'assigned') countAssigned++;
+      else countNotAssigned++;
+    });
+
+    document.getElementById('countAllTeachers').textContent = countAll;
+    document.getElementById('countAssigned').textContent = countAssigned;
+    document.getElementById('countNotAssigned').textContent = countNotAssigned;
+  }
+
+  function filterTeachers() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedAssign = document.querySelector('input[name="assignFilter"]:checked').value;
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const username = row.getAttribute('data-username') || '';
+      const name = row.getAttribute('data-name') || '';
+      const assigned = row.getAttribute('data-assigned');
+
+      const matchesSearch = searchTerm === '' ||
+        username.includes(searchTerm) ||
+        name.includes(searchTerm);
+      const matchesAssign = selectedAssign === 'all' || assigned === selectedAssign;
+
+      if (matchesSearch && matchesAssign) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    tableBody.closest('.card').style.display = visibleCount === 0 ? 'none' : 'block';
+  }
+
+  searchInput.addEventListener('input', filterTeachers);
+  assignFilters.forEach(filter => {
+    filter.addEventListener('change', filterTeachers);
+  });
+
+  document.querySelectorAll('.edit-teacher-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const id = this.dataset.teacherId;
+      const name = this.dataset.teacherName;
+      const phone = this.dataset.teacherPhone;
+      const currentClassId = this.dataset.currentClass;
+      openEditTeacher(id, name, phone, currentClassId);
+    });
+  });
+
+  function openEditTeacher(id, name, phone, currentClassId) {
+    const form = document.getElementById('editTeacherForm');
+    form.action = '/admin/teachers/' + id + '/edit';
+    document.getElementById('editTeacherName').value = name;
+    document.getElementById('editTeacherPhone').value = phone;
+
+    const classSelect = document.getElementById('editTeacherClass');
+
+    Array.from(classSelect.options).forEach(option => {
+      const optionValue = option.value;
+      const isAssigned = option.getAttribute('data-assigned') === 'true';
+      const currentTeacher = option.getAttribute('data-current-teacher');
+
+      if (optionValue === '') {
+        option.style.display = '';
+      } else if (currentTeacher === id) {
+        option.style.display = '';
+      } else if (isAssigned) {
+        option.style.display = 'none';
+      } else {
+        option.style.display = '';
+      }
+    });
+
+    classSelect.value = currentClassId || '';
+    const modal = new bootstrap.Modal(document.getElementById('editTeacherModal'));
+    modal.show();
+  }
+
+  updateCounts();
+</script>
+{% endblock %}

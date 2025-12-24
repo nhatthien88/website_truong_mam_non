@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Nhập/Sửa sức khỏe</h3>
+<p><b>Học sinh:</b> {{ student.full_name }} | <b>Ngày:</b> {{ record_date.strftime("%Y-%m-%d") }}</p>
+
+<form method="post" class="w-50">
+  <div class="mb-3">
+    <label class="form-label">Cân nặng (kg)</label>
+    <input class="form-control" name="weight_kg" value="{{ record.weight_kg if record else '' }}" placeholder="VD: 15">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Nhiệt độ</label>
+    <input class="form-control" name="temperature_c" value="{{ record.temperature_c if record else '' }}" required placeholder="VD: 36.8">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Ghi chú</label>
+    <input class="form-control" name="note" value="{{ record.note if record and record.note else '' }}" placeholder="VD: Bình thường">
+  </div>
+  <button class="btn btn-primary" type="submit">Lưu</button>
+  <a class="btn btn-secondary" href="{{ url_for('teacher.health_list', date=record_date.strftime('%Y-%m-%d')) }}">Hủy</a>
+</form>
+{% endblock %}

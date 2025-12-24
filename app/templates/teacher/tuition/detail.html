@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Chi tiết hóa đơn</h3>
+
+<div class="mb-2">
+  <b>Tháng:</b> {{ inv.billing_month }}<br>
+  <b>Học sinh:</b> {{ inv.student.full_name }}<br>
+  <b>Phụ huynh:</b> {{ inv.student.parent_name }} - {{ inv.student.parent_phone }}
+</div>
+
+<table class="table table-bordered w-auto">
+  <tr><th>Học phí tháng</th><td>{{ "{:,}".format(inv.tuition_fee) }}</td></tr>
+  <tr><th>Tiền ăn/ngày</th><td>{{ "{:,}".format(inv.meal_unit_price) }}</td></tr>
+  <tr><th>Số ngày ăn</th><td>{{ inv.meal_days }}</td></tr>
+  <tr><th>Tổng tiền</th><td><b>{{ "{:,}".format(inv.total_amount) }}</b></td></tr>
+  <tr><th>Trạng thái</th>
+    <td>
+      {% if inv.status == 'PAID' %}
+        <span class="badge text-bg-success">Đã thu</span>
+      {% else %}
+        <span class="badge text-bg-warning">Chưa thu</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% if inv.status == 'PAID' %}
+  <tr><th>Ngày thu</th><td>{{ inv.paid_at }}</td></tr>
+  <tr><th>Người thu</th><td>{{ inv.collector.full_name if inv.collector else "-" }}</td></tr>
+  {% endif %}
+</table>
+
+{% if inv.status != 'PAID' %}
+<form method="post" action="{{ url_for('teacher.invoice_confirm', invoice_id=inv.id) }}"
+      onsubmit="return confirm('Xác nhận đã thu hóa đơn này?');">
+  <button class="btn btn-success" type="submit">Xác nhận đã thu</button>
+</form>
+{% endif %}
+
+<a class="btn btn-secondary mt-3" href="{{ url_for('teacher.tuition', month=inv.billing_month) }}">Quay lại</a>
+
+{% endblock %}

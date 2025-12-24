@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-door-open-fill text-primary me-3" style="font-size: 2.5rem;"></i>
+  <h3 class="mb-0">Quản lý lớp học</h3>
+</div>
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-header">
+    <i class="bi bi-plus-circle-fill me-2"></i>Thêm lớp mới
+  </div>
+  <div class="card-body">
+    <form class="row g-3 align-items-end" method="post" action="{{ url_for('admin.classes_create') }}">
+      <div class="col-md-4">
+        <label class="form-label small text-muted">Tên lớp</label>
+        <input class="form-control" name="name" placeholder="VD: Lớp Chồi 1" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label small text-muted">Giáo viên phụ trách</label>
+        <select class="form-select" name="teacher_id">
+          <option value="">Chưa phân công</option>
+          {% for t in teachers %}
+          <option value="{{ t.id }}">{{ t.full_name }} ({{ t.username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary w-100" type="submit">
+          <i class="bi bi-plus-circle me-1"></i>Tạo lớp
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="input-group">
+      <span class="input-group-text bg-white">
+        <i class="bi bi-search"></i>
+      </span>
+      <input type="text" class="form-control" id="searchClass" placeholder="Tìm theo tên lớp hoặc giáo viên...">
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="btn-group" role="group">
+      <input type="radio" class="btn-check" name="classFilter" id="filterAllClasses" value="all" checked
+        autocomplete="off">
+      <label class="btn btn-outline-primary" for="filterAllClasses">
+        <i class="bi bi-list-ul me-1"></i>Tất cả (<span id="countAllClasses">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="classFilter" id="filterHasTeacher" value="has-teacher"
+        autocomplete="off">
+      <label class="btn btn-outline-success" for="filterHasTeacher">
+        <i class="bi bi-person-check me-1"></i>Có GV (<span id="countHasTeacher">0</span>)
+      </label>
+
+      <input type="radio" class="btn-check" name="classFilter" id="filterNoTeacher" value="no-teacher"
+        autocomplete="off">
+      <label class="btn btn-outline-secondary" for="filterNoTeacher">
+        <i class="bi bi-person-x me-1"></i>Chưa có GV (<span id="countNoTeacher">0</span>)
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px;">ID</th>
+            <th>Tên lớp</th>
+            <th>Giáo viên phụ trách</th>
+            <th style="width: 200px;" class="text-center">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="classTableBody">
+          {% for c in classes %}
+          <tr data-name="{{ c.name|lower }}" data-teacher="{{ c.teacher.full_name|lower if c.teacher else '' }}"
+            data-has-teacher="{{ 'has-teacher' if c.teacher else 'no-teacher' }}">
+            <td class="fw-semibold text-muted">#{{ c.id }}</td>
+            <td>
+              <i class="bi bi-door-open text-primary me-2"></i>
+              <span class="fw-semibold">{{ c.name }}</span>
+            </td>
+            <td>
+              {% if c.teacher %}
+              <i class="bi bi-person-check-fill text-success me-2"></i>
+              {{ c.teacher.full_name }}
+              <span class="text-muted small">({{ c.teacher.username }})</span>
+              {% else %}
+              <span class="badge bg-secondary">
+                <i class="bi bi-person-x me-1"></i>Chưa phân công
+              </span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <form class="d-inline" method="post" action="{{ url_for('admin.classes_edit', class_id=c.id) }}">
+                <input type="hidden" name="name" value="{{ c.name }}">
+                <button class="btn btn-sm btn-outline-secondary" type="button"
+                  onclick="openEditClass('{{ c.id }}','{{ c.name }}','{{ c.teacher_id or '' }}')">
+                  <i class="bi bi-pencil-square me-1"></i>Sửa
+                </button>
+              </form>
+              <form class="d-inline" method="post" action="{{ url_for('admin.classes_delete', class_id=c.id) }}"
+                onsubmit="return confirm('Bạn có chắc chắn muốn xóa lớp này?');">
+                <button class="btn btn-sm btn-outline-danger" type="submit">
+                  <i class="bi bi-trash-fill me-1"></i>Xóa
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+  <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+  <p class="text-muted mt-3">Không tìm thấy lớp học phù hợp</p>
+</div>
+
+<div class="modal fade" id="editClassModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" id="editClassForm">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square me-2"></i>Sửa thông tin lớp
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-door-open-fill me-1"></i>Tên lớp
+          </label>
+          <input class="form-control" name="name" id="editClassName" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="bi bi-person-fill me-1"></i>Giáo viên phụ trách
+          </label>
+          <select class="form-select" name="teacher_id" id="editTeacherId">
+            <option value="">Chưa phân công</option>
+            {% for t in all_teachers %}
+            <option value="{{ t.id }}"
+              data-assigned="{{ 'true' if classes|selectattr('teacher_id', 'equalto', t.id)|list|length > 0 else 'false' }}">
+              {{ t.full_name }} ({{ t.username }})
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">
+            <i class="bi bi-info-circle me-1"></i>Chỉ hiển thị giáo viên chưa phân công hoặc giáo viên hiện tại
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Hủy
+        </button>
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check-circle me-1"></i>Lưu thay đổi
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('searchClass');
+  const tableBody = document.getElementById('classTableBody');
+  const noResults = document.getElementById('noResults');
+  const classFilters = document.querySelectorAll('input[name="classFilter"]');
+
+  function updateCounts() {
+    const rows = tableBody.querySelectorAll('tr');
+    let countAll = rows.length;
+    let countHasTeacher = 0;
+    let countNoTeacher = 0;
+
+    rows.forEach(row => {
+      const hasTeacher = row.getAttribute('data-has-teacher');
+
+      if (hasTeacher === 'has-teacher') countHasTeacher++;
+      else countNoTeacher++;
+    });
+
+    document.getElementById('countAllClasses').textContent = countAll;
+    document.getElementById('countHasTeacher').textContent = countHasTeacher;
+    document.getElementById('countNoTeacher').textContent = countNoTeacher;
+  }
+
+  function filterClasses() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedFilter = document.querySelector('input[name="classFilter"]:checked').value;
+    const rows = tableBody.querySelectorAll('tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const className = row.getAttribute('data-name') || '';
+      const teacherName = row.getAttribute('data-teacher') || '';
+      const hasTeacher = row.getAttribute('data-has-teacher');
+
+      const matchesSearch = searchTerm === '' ||
+        className.includes(searchTerm) ||
+        teacherName.includes(searchTerm);
+      const matchesFilter = selectedFilter === 'all' || hasTeacher === selectedFilter;
+
+      if (matchesSearch && matchesFilter) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    tableBody.closest('.card').style.display = visibleCount === 0 ? 'none' : 'block';
+  }
+
+  searchInput.addEventListener('input', filterClasses);
+  classFilters.forEach(filter => {
+    filter.addEventListener('change', filterClasses);
+  });
+
+  function openEditClass(id, name, teacherId) {
+    const form = document.getElementById('editClassForm');
+    form.action = '/admin/classes/' + id + '/edit';
+    document.getElementById('editClassName').value = name;
+
+    const selectElement = document.getElementById('editTeacherId');
+
+    selectElement.querySelectorAll('option').forEach(option => {
+      const optionValue = option.value;
+      const isAssigned = option.getAttribute('data-assigned') === 'true';
+
+      if (optionValue === '') {
+        option.style.display = '';
+      } else if (optionValue === teacherId) {
+        option.style.display = '';
+      } else if (isAssigned) {
+        option.style.display = 'none';
+      } else {
+        option.style.display = '';
+      }
+    });
+
+    selectElement.value = teacherId || '';
+    const modal = new bootstrap.Modal(document.getElementById('editClassModal'));
+    modal.show();
+  }
+
+  updateCounts();
+</script>
+{% endblock %}

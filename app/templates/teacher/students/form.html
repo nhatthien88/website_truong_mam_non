@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-person-{{ 'plus' if mode=='create' else 'gear' }}-fill text-primary me-3"
+    style="font-size: 2.5rem;"></i>
+  <div>
+    <h3 class="mb-0">{{ "Thêm học sinh" if mode=="create" else "Sửa học sinh" }}</h3>
+    <p class="text-muted mb-0 small">{{ classroom.name }}</p>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form method="post">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                <i class="bi bi-person-fill me-1"></i>Họ và tên
+              </label>
+              <input class="form-control" name="full_name" value="{{ student.full_name if student else '' }}"
+                placeholder="Nguyễn Văn A" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                <i class="bi bi-calendar-event me-1"></i>Ngày sinh
+              </label>
+              <input type="date" class="form-control" name="dob"
+                value="{{ student.dob.strftime('%Y-%m-%d') if student else '' }}" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-gender-ambiguous me-1"></i>Giới tính
+            </label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="gender" value="M" id="genderM" {% if student and
+                  student.gender=='M' or not student %}checked{% endif %}>
+                <label class="form-check-label" for="genderM">
+                  <i class="bi bi-gender-male text-info"></i> Nam
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="gender" value="F" id="genderF" {% if student and
+                  student.gender=='F' %}checked{% endif %}>
+                <label class="form-check-label" for="genderF">
+                  <i class="bi bi-gender-female text-danger"></i> Nữ
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-people-fill me-1"></i>Họ tên phụ huynh
+            </label>
+            <input class="form-control" name="parent_name" value="{{ student.parent_name if student else '' }}"
+              placeholder="Nguyễn Văn B" required>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">
+              <i class="bi bi-telephone-fill me-1"></i>Số điện thoại liên hệ
+            </label>
+            <input class="form-control" name="parent_phone" value="{{ student.parent_phone if student else '' }}"
+              placeholder="0912345678" required>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <a class="btn btn-secondary" href="{{ url_for('teacher.students_list') }}">
+              <i class="bi bi-x-circle me-1"></i>Hủy
+            </a>
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-check-circle me-1"></i>Lưu thông tin
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

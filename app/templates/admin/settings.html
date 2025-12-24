@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-gear-fill text-primary me-3" style="font-size: 2.5rem;"></i>
+  <h3 class="mb-0">Thay đổi quy định</h3>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <i class="bi bi-sliders me-2"></i>Cài đặt hệ thống
+      </div>
+      <div class="card-body p-4">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tuition-tab" data-bs-toggle="tab" data-bs-target="#tuition-pane"
+              type="button" role="tab">
+              <i class="bi bi-cash-stack me-2"></i>Thay đổi học phí
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="capacity-tab" data-bs-toggle="tab" data-bs-target="#capacity-pane"
+              type="button" role="tab">
+              <i class="bi bi-people me-2"></i>Cập nhật số lượng trẻ tối đa
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="tuition-pane" role="tabpanel">
+            <form method="post">
+              <input type="hidden" name="form_type" value="tuition">
+              <div class="mb-4">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-cash-stack text-success me-2" style="font-size: 1.25rem;"></i>
+                  <span>Học phí cơ bản / tháng</span>
+                </label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control" name="tuition_fee_monthly"
+                    value="{{ settings.tuition_fee_monthly }}" min="0" required>
+                  <span class="input-group-text">VNĐ</span>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-basket text-warning me-2" style="font-size: 1.25rem;"></i>
+                  <span>Tiền ăn / ngày</span>
+                </label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control" name="meal_price_per_day"
+                    value="{{ settings.meal_price_per_day }}" min="0" required>
+                  <span class="input-group-text">VNĐ</span>
+                </div>
+              </div>
+
+              <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Lưu ý:</strong> Các thay đổi sẽ ảnh hưởng đến tính toán học phí và quản lý lớp học.
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-primary btn-lg" type="submit">
+                  <i class="bi bi-check-circle me-2"></i>Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="capacity-pane" role="tabpanel">
+            <form method="post">
+              <input type="hidden" name="form_type" value="capacity">
+              <div class="mb-4">
+                <label class="form-label d-flex align-items-center">
+                  <i class="bi bi-people text-info me-2" style="font-size: 1.25rem;"></i>
+                  <span>Số trẻ tối đa / lớp</span>
+                </label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control" name="max_students_per_class"
+                    value="{{ settings.max_students_per_class }}" min="1" max="50" required>
+                  <span class="input-group-text">học sinh</span>
+                </div>
+                <div class="form-text mt-2">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Số lượng học sinh tối đa được phép trong một lớp học
+                </div>
+              </div>
+
+              <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Lưu ý:</strong> Thay đổi này sẽ ảnh hưởng đến việc thêm học sinh mới vào lớp.
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-primary btn-lg" type="submit">
+                  <i class="bi bi-check-circle me-2"></i>Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

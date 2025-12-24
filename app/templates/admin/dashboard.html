@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <i class="bi bi-speedometer2 text-primary me-3" style="font-size: 2.5rem;"></i>
+  <h3 class="mb-0">Trang chủ Admin</h3>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card border-start border-primary border-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted">
+              <i class="bi bi-door-open me-1"></i>Số lớp
+            </div>
+            <div class="fs-4">{{ class_count }}</div>
+          </div>
+          <i class="bi bi-door-open-fill text-primary" style="font-size: 3rem; opacity: 0.2;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-start border-success border-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted">
+              <i class="bi bi-mortarboard me-1"></i>Số học sinh
+            </div>
+            <div class="fs-4" style="color: #66bb6a;">{{ student_count }}</div>
+          </div>
+          <i class="bi bi-mortarboard-fill text-success" style="font-size: 3rem; opacity: 0.2;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-start border-info border-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted">
+              <i class="bi bi-people me-1"></i>Số giáo viên
+            </div>
+            <div class="fs-4" style="color: #64b5f6;">{{ teacher_count }}</div>
+          </div>
+          <i class="bi bi-people-fill text-info" style="font-size: 3rem; opacity: 0.2;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-graph-up-arrow text-primary mb-3" style="font-size: 3rem;"></i>
+        <h5 class="mb-2">Chào mừng đến với hệ thống quản lý</h5>
+        <p class="text-muted">Sử dụng menu bên trái để điều hướng các chức năng quản lý</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

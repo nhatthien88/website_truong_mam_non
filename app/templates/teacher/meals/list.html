@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Ghi nhận ăn theo ngày - {{ classroom.name }}</h3>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-3">
+    <input type="date" class="form-control" name="date" value="{{ log_date.strftime('%Y-%m-%d') }}">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-secondary" type="submit">Xem</button>
+  </div>
+</form>
+
+{% if locked_ids and locked_ids|length > 0 %}
+<div class="alert alert-info">Một số học sinh đã <b>đã thu</b> hóa đơn trong tháng này nên <b>không thể thay đổi</b> ngày ăn.</div>
+{% endif %}
+<form method="post">
+  <table class="table table-bordered align-middle">
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Họ tên</th>
+        <th>Có ăn</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+        {% set l = log_map.get(s.id) %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ s.full_name }}</td>
+          <td>
+            <input type="checkbox" name="ate_{{ s.id }}" value="1" {% if l and l.ate %}checked{% endif %} {% if s.id in locked_ids %}disabled{% endif %}>
+            {% if s.id in locked_ids %}<span class="badge text-bg-secondary ms-2">Đã thu (khóa)</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button class="btn btn-primary" type="submit">Lưu</button>
+  <a class="btn btn-secondary" href="{{ url_for('teacher.tuition') }}">Quay lại học phí</a>
+</form>
+{% endblock %}

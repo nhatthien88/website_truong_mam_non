@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <i class="bi bi-person-badge text-primary me-3" style="font-size: 2.5rem;"></i>
+    <h3 class="mb-0">Trang chủ Teacher</h3>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-door-open-fill text-primary me-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="mb-0">Lớp phụ trách</h5>
+                </div>
+                <div class="fs-3 fw-bold text-primary">{{ classroom.name }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-people-fill text-success me-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="mb-0">Sĩ số lớp học</h5>
+                </div>
+                <div class="fs-3 fw-bold" style="color: #66bb6a;">{{ student_count }} học sinh</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-4">
+                    <i class="bi bi-list-check me-2"></i>Truy cập nhanh
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('teacher.students_list') }}" class="text-decoration-none">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-mortarboard-fill text-primary mb-2" style="font-size: 2rem;"></i>
+                                    <div class="fw-semibold">Quản lý học sinh</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('teacher.health_list') }}" class="text-decoration-none">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-heart-pulse-fill text-danger mb-2" style="font-size: 2rem;"></i>
+                                    <div class="fw-semibold">Sức khỏe</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('teacher.tuition') }}" class="text-decoration-none">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cash-coin text-success mb-2" style="font-size: 2rem;"></i>
+                                    <div class="fw-semibold">Học phí</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('teacher.reports') }}" class="text-decoration-none">
+                            <div class="card border-0 bg-light h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-bar-chart-fill text-warning mb-2" style="font-size: 2rem;"></i>
+                                    <div class="fw-semibold">Báo cáo</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
